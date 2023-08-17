@@ -1,6 +1,6 @@
 {
-    "name": "invoice_lottery",
-    "short_name": "invoice_lottery",
+    "name": "電子發票對奬",
+    "short_name": "電子發票對奬",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

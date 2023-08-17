@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:lottie/lottie.dart';
 
 Dio dio = Dio();
 void main() => runApp(MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: const SplashScreen(),
     );
   }
 }
@@ -87,14 +88,14 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: _fetchData,
               child: const Text("查 詢"),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 2),
             Expanded(
               child: ListView.builder(
                 itemCount: apiData.length,
                 itemBuilder: (BuildContext context, int index) {
                   var item = apiData[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -103,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           textAlign: TextAlign.center,
                           text: TextSpan(
                             style: const TextStyle(
-                                fontSize: 20.0, color: Colors.black),
+                                fontSize: 18.0, color: Colors.black),
                             children: <TextSpan>[
                               const TextSpan(text: "特別奬:\n"),
                               ...item['special_bonus']
@@ -126,12 +127,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 5),
                         RichText(
                           textAlign: TextAlign.center,
                           text: TextSpan(
                             style: const TextStyle(
-                                fontSize: 20.0, color: Colors.black),
+                                fontSize: 18.0, color: Colors.black),
                             children: <TextSpan>[
                               const TextSpan(text: "特奬:\n"),
                               ...item['special_award']
@@ -154,12 +154,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 5),
                         RichText(
                           textAlign: TextAlign.center,
                           text: TextSpan(
                             style: const TextStyle(
-                                fontSize: 20.0, color: Colors.black),
+                                fontSize: 18.0, color: Colors.black),
                             children: <TextSpan>[
                               const TextSpan(text: "頭奬:\n"),
                               ...item['jackpot'].split('、').expand((number) {
@@ -254,9 +253,15 @@ class _MyHomePageState extends State<MyHomePage> {
           builder: (context) => Scaffold(
             body: Stack(
               children: [
-                QRView(
-                  key: qrKey,
-                  onQRViewCreated: _onQRViewCreated,
+                Center(
+                  child: SizedBox(
+                    width: 250, // 定義寬度
+                    height: 250, // 定義高度
+                    child: QRView(
+                      key: qrKey,
+                      onQRViewCreated: _onQRViewCreated,
+                    ),
+                  ),
                 ),
                 Positioned(
                   right: 20,
@@ -277,7 +282,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       );
-      return qrText;
+      return qrText != null && qrText.length >= 10
+          ? qrText.substring(0, 10)
+          : qrText;
     } catch (ex) {
       print("Scanning Error: $ex");
       return null;
@@ -293,13 +300,72 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String _matchQRData(String data) {
     String lastThreeDigits = data.substring(data.length - 3);
+
     for (var item in apiData) {
-      if (item['special_bonus'].endsWith(lastThreeDigits) ||
-          item['special_award'].endsWith(lastThreeDigits) ||
-          item['jackpot'].endsWith(lastThreeDigits)) {
-        return '中奬';
+      var specialBonusNumbers = item['special_bonus'].split('、');
+      var specialAwardNumbers = item['special_award'].split('、');
+      var jackpotNumbers = item['jackpot'].split('、');
+
+      for (var number in specialBonusNumbers) {
+        if (number.endsWith(lastThreeDigits)) {
+          return '中奬';
+        }
+      }
+
+      for (var number in specialAwardNumbers) {
+        if (number.endsWith(lastThreeDigits)) {
+          return '中奬';
+        }
+      }
+
+      for (var number in jackpotNumbers) {
+        if (number.endsWith(lastThreeDigits)) {
+          return '中奬';
+        }
       }
     }
+
     return '沒有中奬';
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Lottie.asset(
+        'assets/lottie/invoice_scanner.json',
+        controller: _controller,
+        height: MediaQuery.of(context).size.height * 1,
+        animate: true,
+        onLoaded: (composition) {
+          _controller
+            ..duration = composition.duration
+            ..forward().whenComplete(() => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyHomePage()),
+                ));
+        },
+      ),
+    );
   }
 }
