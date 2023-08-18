@@ -9,6 +9,7 @@ dependencies:
     flutter:
         sdk: flutter
     flutter_html: ^3.0.0-beta.2
+    flutter_launcher_icons: ^0.13.1
     http: ^1.1.0
     lottie: ^2.6.0
     qr_code_scanner: ^1.0.1
@@ -25,3 +26,9 @@ flutter:
         - assets/lottie/
         - assets/fonts/
         - assets/splash_screen.json
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon.png"

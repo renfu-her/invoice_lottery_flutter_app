@@ -96,13 +96,15 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             ElevatedButton(
-              onPressed: () async {
-                String? scannedData = await _scanQR();
-                setState(() {
-                  qrData = scannedData ?? '';
-                  matchResult = _matchQRData(qrData);
-                });
-              },
+              onPressed: apiData.isEmpty
+                  ? null
+                  : () async {
+                      String? scannedData = await _scanQR();
+                      setState(() {
+                        qrData = scannedData ?? '';
+                        matchResult = _matchQRData(qrData);
+                      });
+                    },
               child: const Text("掃描二維碼", style: TextStyle(fontSize: 22)),
             ),
             Text('掃描結果: $qrData', style: const TextStyle(fontSize: 22)),
