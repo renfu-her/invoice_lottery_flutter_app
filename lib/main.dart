@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:lottie/lottie.dart';
+import 'package:invoice_lottery/utils/privacy_policy.dart';
+import 'package:invoice_lottery/utils/splash_screen.dart';
 
 Dio dio = Dio();
 void main() => runApp(MyApp());
@@ -60,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               items: years.map((year) {
                 return DropdownMenuItem<String>(
-                  child: Text(year),
+                  child: Text(year, style: const TextStyle(fontSize: 18)),
                   value: year,
                 );
               }).toList(),
@@ -77,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               items: months.map((month) {
                 return DropdownMenuItem<String>(
-                  child: Text(month),
+                  child: Text(month, style: const TextStyle(fontSize: 18)),
                   value: month,
                 );
               }).toList(),
@@ -86,104 +87,12 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 5),
             ElevatedButton(
               onPressed: _fetchData,
-              child: const Text("查 詢"),
+              child: const Text("查 詢", style: TextStyle(fontSize: 20)),
             ),
             const SizedBox(height: 2),
             Expanded(
-              child: ListView.builder(
-                itemCount: apiData.length,
-                itemBuilder: (BuildContext context, int index) {
-                  var item = apiData[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: const TextStyle(
-                                fontSize: 18.0, color: Colors.black),
-                            children: <TextSpan>[
-                              const TextSpan(text: "特別奬:\n"),
-                              ...item['special_bonus']
-                                  .split('、')
-                                  .expand((number) {
-                                return [
-                                  TextSpan(
-                                      text: number.substring(
-                                          0, number.length - 3),
-                                      children: [
-                                        TextSpan(
-                                            text: number
-                                                .substring(number.length - 3),
-                                            style: const TextStyle(
-                                                color: Colors.red))
-                                      ]),
-                                  const TextSpan(text: '\n')
-                                ];
-                              }).toList(),
-                            ],
-                          ),
-                        ),
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: const TextStyle(
-                                fontSize: 18.0, color: Colors.black),
-                            children: <TextSpan>[
-                              const TextSpan(text: "特奬:\n"),
-                              ...item['special_award']
-                                  .split('、')
-                                  .expand((number) {
-                                return [
-                                  TextSpan(
-                                      text: number.substring(
-                                          0, number.length - 3),
-                                      children: [
-                                        TextSpan(
-                                            text: number
-                                                .substring(number.length - 3),
-                                            style: const TextStyle(
-                                                color: Colors.red))
-                                      ]),
-                                  const TextSpan(text: '\n')
-                                ];
-                              }).toList(),
-                            ],
-                          ),
-                        ),
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: const TextStyle(
-                                fontSize: 18.0, color: Colors.black),
-                            children: <TextSpan>[
-                              const TextSpan(text: "頭奬:\n"),
-                              ...item['jackpot'].split('、').expand((number) {
-                                return [
-                                  TextSpan(
-                                      text: number.substring(
-                                          0, number.length - 3),
-                                      children: [
-                                        TextSpan(
-                                            text: number
-                                                .substring(number.length - 3),
-                                            style: const TextStyle(
-                                                color: Colors.red))
-                                      ]),
-                                  const TextSpan(text: '\n')
-                                ];
-                              }).toList(),
-                            ],
-                          ),
-                        ),
-                        const Divider(),
-                      ],
-                    ),
-                  );
-                },
+              child: SingleChildScrollView(
+                child: _buildCustomTable(),
               ),
             ),
             ElevatedButton(
@@ -194,18 +103,139 @@ class _MyHomePageState extends State<MyHomePage> {
                   matchResult = _matchQRData(qrData);
                 });
               },
-              child: const Text("掃描二維碼"),
+              child: const Text("掃描二維碼", style: TextStyle(fontSize: 22)),
             ),
-            Text('掃描結果: $qrData'),
+            Text('掃描結果: $qrData', style: const TextStyle(fontSize: 22)),
             Text(
               '比對結果: $matchResult',
               style: TextStyle(
-                color: matchResult == '中奬' ? Colors.green : Colors.red,
+                  color: matchResult == '中奬' ? Colors.green : Colors.red,
+                  fontSize: 26),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.lightBlueAccent, // 或其他你想要的背景色
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PrivacyPolicyPage()));
+              },
+              child: const Text(
+                "隱私權政策",
+                style: TextStyle(
+                  color: Colors.white, // 將其顏色設定為藍色使其看起來像一個連結
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCustomTable() {
+    List<Widget> tableRows = [];
+
+    // 第一行，中奬說明與中奬號碼
+    tableRows.add(
+      const Row(
+        children: [
+          Expanded(
+            child: Center(
+              child: Text(
+                '中奬說明',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Center(
+                child: Text(
+              '中奬號碼',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18),
+            )),
+          ),
+        ],
+      ),
+    );
+
+    for (var item in apiData) {
+      // 特別奬是全部紅色的
+      tableRows.add(_buildRow("特別奬", item['special_bonus'], isAllRed: true));
+      tableRows.add(_buildRow("特奬", item['special_award']));
+      tableRows.add(_buildRow("頭奬", item['jackpot']));
+    }
+
+    return Column(children: tableRows);
+  }
+
+  // 更新 _buildRow 方法來包含 isAllRed 參數
+  Widget _buildRow(String title, String data, {bool isAllRed = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center, // 使Row的子项垂直居中
+      children: [
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // 使Column的子项垂直居中
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold), // 放大字体并加粗
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // 這裡使號碼垂直居中
+            children: [
+              Text.rich(
+                TextSpan(
+                  children: [
+                    ...data.split('、').map((number) {
+                      if (isAllRed) {
+                        return TextSpan(
+                          text: number, // 每個號碼後面都加一個換行符，使號碼在不同的行上
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 18),
+                        );
+                      }
+                      return TextSpan(
+                        text: '\n' + number.substring(0, number.length - 3),
+                        style: const TextStyle(fontSize: 18),
+                        children: [
+                          TextSpan(
+                            text: number.substring(number.length - 3) +
+                                '\n', // 在每3位後面都加一個換行符
+                            style: const TextStyle(
+                                color: Colors.red, fontSize: 18),
+                          ),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -300,6 +330,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String _matchQRData(String data) {
     String lastThreeDigits = data.substring(data.length - 3);
+    String lastEightDigits = data.substring(data.length - 8);
 
     for (var item in apiData) {
       var specialBonusNumbers = item['special_bonus'].split('、');
@@ -307,65 +338,24 @@ class _MyHomePageState extends State<MyHomePage> {
       var jackpotNumbers = item['jackpot'].split('、');
 
       for (var number in specialBonusNumbers) {
-        if (number.endsWith(lastThreeDigits)) {
-          return '中奬';
+        if (number.endsWith(lastEightDigits)) {
+          return '特別奬中奬';
         }
       }
 
       for (var number in specialAwardNumbers) {
         if (number.endsWith(lastThreeDigits)) {
-          return '中奬';
+          return '特奬中奬';
         }
       }
 
       for (var number in jackpotNumbers) {
         if (number.endsWith(lastThreeDigits)) {
-          return '中奬';
+          return '頭奬中奬';
         }
       }
     }
 
     return '沒有中奬';
-  }
-}
-
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
-
-  @override
-  _SplashScreenState createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 5),
-      vsync: this,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Lottie.asset(
-        'assets/lottie/invoice_scanner.json',
-        controller: _controller,
-        height: MediaQuery.of(context).size.height * 1,
-        animate: true,
-        onLoaded: (composition) {
-          _controller
-            ..duration = composition.duration
-            ..forward().whenComplete(() => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MyHomePage()),
-                ));
-        },
-      ),
-    );
   }
 }
