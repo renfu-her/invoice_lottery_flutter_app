@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:invoice_lottery/utils/privacy_policy.dart';
 import 'package:invoice_lottery/utils/splash_screen.dart';
+import 'package:connectivity/connectivity.dart';
 
 Dio dio = Dio();
 void main() => runApp(MyApp());
@@ -37,10 +38,34 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   bool isCameraStopped = false;
 
+  Future<bool> _checkInternetConnectivity() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      return false;
+    }
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
-    _fetchYearsAndMonths();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInternetAndFetchData();
+    });
+  }
+
+  _checkInternetAndFetchData() async {
+    bool isConnected = await _checkInternetConnectivity();
+    if (isConnected) {
+      await _fetchYearsAndMonths();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("沒有網路連線!"),
+        ),
+      );
+      return;
+    }
   }
 
   @override
@@ -87,9 +112,15 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 5),
             ElevatedButton(
               onPressed: _fetchData,
-              child: const Text("查 詢", style: TextStyle(fontSize: 20)),
+              style: ButtonStyle(
+                minimumSize: MaterialStateProperty.resolveWith((states) =>
+                    const Size(200, 60)), // 這裡的Size(200, 60)可以根據你的需要調整
+              ),
+              child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [Text("查 詢", style: TextStyle(fontSize: 20))]),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 10),
             Expanded(
               child: SingleChildScrollView(
                 child: _buildCustomTable(),
@@ -105,7 +136,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         matchResult = _matchQRData(qrData);
                       });
                     },
-              child: const Text("掃描二維碼", style: TextStyle(fontSize: 22)),
+              style: ButtonStyle(
+                minimumSize: MaterialStateProperty.resolveWith((states) =>
+                    const Size(100, 60)), // 這裡的Size(200, 60)可以根據你的需要調整
+              ),
+              child: const Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // 使icon和文字在button內置中
+                children: [
+                  Icon(Icons.scanner), // 掃描的圖標
+                  SizedBox(width: 10), // 提供一些間距
+                  Text("掃描二維碼", style: TextStyle(fontSize: 22)),
+                ],
+              ),
             ),
             Text('掃描結果: $qrData', style: const TextStyle(fontSize: 22)),
             Text(
@@ -242,6 +285,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _fetchYearsAndMonths() async {
+    bool isConnected = await _checkInternetConnectivity();
+    if (!isConnected) {
+      _showNoInternetDialog();
+      return;
+    }
+
     try {
       String apiUrl = "https://wingx.shop/api/invoice-lotteries/menu";
 
@@ -263,6 +312,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _fetchData() async {
+    bool isConnected = await _checkInternetConnectivity();
+    if (!isConnected) {
+      _showNoInternetDialog();
+      return;
+    }
+
     String apiUrl =
         "https://wingx.shop/api/invoice-lotteries?year=$selectedYear&month=$selectedMonth";
 
@@ -277,6 +332,26 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('無網路連接'),
+          content: const Text('請檢查您的網路設置'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('確定'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<String?> _scanQR() async {
     try {
       var qrText = await Navigator.push(
@@ -286,13 +361,28 @@ class _MyHomePageState extends State<MyHomePage> {
             body: Stack(
               children: [
                 Center(
-                  child: SizedBox(
-                    width: 250, // 定義寬度
-                    height: 250, // 定義高度
-                    child: QRView(
-                      key: qrKey,
-                      onQRViewCreated: _onQRViewCreated,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 250, // 定義寬度
+                        height: 250, // 定義高度
+                        child: QRView(
+                          key: qrKey,
+                          onQRViewCreated: _onQRViewCreated,
+                          overlay: QrScannerOverlayShape(
+                            borderRadius: 10,
+                            borderColor: Colors.yellow,
+                            borderLength: 30,
+                            borderWidth: 10,
+                            cutOutSize: 300,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20), // 調整 QRView 和圖片之間的距離
+                      Image.asset(
+                          'assets/images/invoice_qrcode.jpg'), // 這裡放你的圖片路徑
+                    ],
                   ),
                 ),
                 Positioned(
@@ -308,7 +398,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Navigator.pop(context); // Close the QR scanner
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),
