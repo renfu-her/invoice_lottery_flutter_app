@@ -4,6 +4,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:invoice_lottery/utils/privacy_policy.dart';
 import 'package:invoice_lottery/utils/splash_screen.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:invoice_lottery/utils/feedback.dart';
 
 Dio dio = Dio();
 void main() => runApp(MyApp());
@@ -72,6 +73,40 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("查詢發票中奬號碼")),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              child: Center(
+                child: Text('選單',
+                    style: TextStyle(color: Colors.white, fontSize: 24)),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.lightBlue,
+              ),
+            ),
+            ListTile(
+              title: Text('問題反饋', style: TextStyle(fontSize: 20)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FeedbackPage()),
+                );
+              },
+            ),
+            ListTile(
+              title: Text('隱私權政策', style: TextStyle(fontSize: 20)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -156,30 +191,6 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(
                   color: matchResult == '中奬' ? Colors.green : Colors.red,
                   fontSize: 26),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        color: Colors.lightBlueAccent, // 或其他你想要的背景色
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => PrivacyPolicyPage()));
-              },
-              child: const Text(
-                "隱私權政策",
-                style: TextStyle(
-                  color: Colors.white, // 將其顏色設定為藍色使其看起來像一個連結
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ],
         ),
