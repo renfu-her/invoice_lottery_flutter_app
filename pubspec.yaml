@@ -26,7 +26,6 @@ flutter:
     assets:
         - assets/images/
         - assets/lottie/
-        - assets/fonts/
         - assets/splash_screen.json
 
 flutter_icons:
