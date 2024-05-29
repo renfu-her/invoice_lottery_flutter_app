@@ -72,12 +72,20 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("查詢發票中奬號碼")),
+      appBar: AppBar(
+        title: const Text("查詢發票中奬號碼"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchYearsAndMonths,
+          ),
+        ],
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
+            const DrawerHeader(
               child: Center(
                 child: Text('選單',
                     style: TextStyle(color: Colors.white, fontSize: 24)),
